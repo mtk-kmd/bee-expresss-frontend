@@ -20,7 +20,7 @@ export const useAuthGuard = () => {
       router.push("/");
     } else {
       const user = getUserDetails();
-      user.role === "USER" && router.push("https://google.com");
+      user.role === "ADMIN" && router.push(process.env.NEXT_PUBLIC_ADMIN_FRONTEND_URL);
       setUserDetails(user);
       setLoading(false);
     }

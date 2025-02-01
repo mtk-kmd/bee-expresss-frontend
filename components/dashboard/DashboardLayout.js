@@ -13,7 +13,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
     return (
         <>
             <Head>
-                <title>Bee Express Admin</title>
+                <title>{{ title }} | Bee Express</title>
                 <meta name="description" content="Bee Express Admin Dashboard" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
             </Head>

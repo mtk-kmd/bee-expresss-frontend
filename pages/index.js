@@ -48,14 +48,14 @@ export default function Home() {
     return (
         <>
             <Head>
-                <title>Login - Bee Express Admin</title>
+                <title>Bee Express Customer</title>
                 <meta name="description" content="Bee Express Admin Login" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className={`${styles.page} ${geistSans.variable}`}>
                 <main className={styles.main}>
-                    <h1>Login to Bee Express Admin</h1>
+                    <h1>Login to Bee Express</h1>
                     <form onSubmit={handleSubmit} className={styles.form}>
                         <div className={`${styles.formGroup}`}>
                             <label htmlFor="userName">Username</label>
@@ -78,7 +78,7 @@ export default function Home() {
                                 required
                             />
                         </div>
-                        <button type="submit" className={styles.primary}>
+                        <button type="submit" className={`${styles.primary} btn btn-primary`}>
                 Login
                         </button>
                     </form>
