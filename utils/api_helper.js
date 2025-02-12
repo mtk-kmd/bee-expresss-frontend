@@ -15,7 +15,7 @@ async function getApi(url,token) {
     let res = '';
     await axios({
         method: "get",
-        url: API_BASE_URL + url,
+        url: process.env.NEXT_PUBLIC_API_LOCAL_DEV + url,
         headers: {
             Authorization: "Bearer " + token,
         },
@@ -42,7 +42,7 @@ async function getPublicApi(url) {
     let res = '';
     await axios({
         method: "get",
-        url: process.env.NEXT_PUBLIC_API_OPS_DEV + url,
+        url: process.env.NEXT_PUBLIC_API_LOCAL_DEV + url,
     }).then((response) => {
         res = response;
     }).catch((error) => {
@@ -66,7 +66,7 @@ async function postApi(url, token, data) {
   let res = '';
   await axios({
       method: 'post',
-      url: process.env.NEXT_PUBLIC_API_OPS_DEV + url,
+      url: process.env.NEXT_PUBLIC_API_LOCAL_DEV + url,
       data: data,
       headers: {
         Authorization: "Bearer " + token,
@@ -109,7 +109,7 @@ async function putApi(url, token, data) {
   let res = '';
   await axios({
       method: 'put',
-      url: env.API_OPS_DEV + url,
+      url: process.env.NEXT_PUBLIC_API_LOCAL_DEV + url,
       data: data,
       headers: {
         Authorization: "Bearer " + token,
@@ -132,7 +132,7 @@ async function putPublicApi(url, data) {
   let res = '';
   await axios({
       method: 'put',
-      url: env.API_OPS_DEV + url,
+      url: process.env.NEXT_PUBLIC_API_LOCAL_DEV + url,
       data: data,
     }).then((response) => {
       res = response;

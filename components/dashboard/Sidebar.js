@@ -15,6 +15,12 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
                         </Link>
                     </li>
                     <li className="nav-item">
+                        <Link href="/chat" className="nav-link text-white active">
+                            <i className="bi bi-speedometer2 me-2"></i>
+                            {!isCollapsed && <span>Chat</span>}
+                        </Link>
+                    </li>
+                    <li className="nav-item">
                         <Link href="/dashboard/users" className="nav-link text-white">
                             <i className="bi bi-people me-2"></i>
                             {!isCollapsed && <span>Users</span>}
