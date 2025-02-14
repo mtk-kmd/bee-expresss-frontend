@@ -23,6 +23,8 @@ export default function CourierDashboard() {
         5: DELIVERY_STATUS.DELIVERED,
         6: DELIVERY_STATUS.CANCELLED
     };
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
 
     const filterPackages = (type) => {
         if (type === 'new') {
@@ -63,6 +65,47 @@ export default function CourierDashboard() {
         }
 
         getPackages();
+    };
+
+    const handleFileSelect = async (event) => {
+        const file = event.target.files[0];
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/heif'];
+
+        if (file && allowedTypes.includes(file.type)) {
+            const formData = new FormData();
+            formData.append('photo', file);
+            formData.append('userId', getUserDetails().id);
+            formData.append('packageId', selectedPackage.package_id);
+            formData.append('trackingId', selectedPackage.delivery.tracking.tracking_id);
+
+            setSelectedFile(formData);
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewUrl(reader.result);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            alert('Please select a valid image file (PNG, JPG, JPEG, or HEIF)');
+        }
+    };
+
+    const handleUpload = async () => {
+        if (!selectedFile) return;
+
+        try {
+            const response = await postApi('upload', authToken, selectedFile, true);
+
+            if (response.status === 200) {
+                alert('Photo uploaded successfully!');
+                setSelectedFile(null);
+                setPreviewUrl(null);
+                handleCloseDeliveryModal();
+            }
+        } catch (error) {
+            console.error('Error uploading photo:', error);
+            alert('Failed to upload photo');
+        }
     };
 
     useEffect(() => {
@@ -415,6 +458,53 @@ export default function CourierDashboard() {
                             </div>
                         </div>
                     )}
+                    <div className="card mt-4">
+                        <div className="card-header bg-primary text-white">
+                            <h5 className="mb-0">Upload Profile Photo</h5>
+                        </div>
+                        <div className="card-body">
+                            <div className="row">
+                                <div className="col-md-6">
+                                    <div className="mb-3">
+                                        <label className="form-label">Select Photo</label>
+                                        <input
+                                            type="file"
+                                            className="form-control"
+                                            accept=".png,.jpg,.jpeg,.heif"
+                                            onChange={handleFileSelect}
+                                        />
+                                        <small className="text-muted">
+                                            Allowed formats: PNG, JPG, JPEG, HEIF
+                                        </small>
+                                    </div>
+                                    {selectedFile && (
+                                        <button
+                                            className="btn btn-primary"
+                                            onClick={handleUpload}
+                                        >
+                                            Upload Photo
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="col-md-6">
+                                    {previewUrl && (
+                                        <div>
+                                            <h6>Preview:</h6>
+                                            <img
+                                                src={previewUrl}
+                                                alt="Preview"
+                                                style={{
+                                                    maxWidth: '100%',
+                                                    maxHeight: '200px',
+                                                    objectFit: 'contain'
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseDeliveryModal}>

@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { getPublicApi,postApi } from "@/utils/api_helper";
 import moment from "moment";
+import Image from "next/image";
 import { DELIVERY_STATUS, DELIVERY_STATUS_BADGES, LOCALES} from "@/utils/locales";
 
 export default function CustomerPackageDashboard() {
@@ -638,8 +639,20 @@ export default function CustomerPackageDashboard() {
                             <div className="additional-details mt-4">
                                 {/* ... your existing package details ... */}
                             </div>
+
+                            <img
+                                src={selectedPackage.delivery.tracking.photo_url}
+                                alt="Package Preview"
+                                style={{
+                                    maxWidth: '200px',
+                                    height: 'auto',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                }}
+                            />
                         </div>
                     )}
+
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseViewDeliveryStatusModal}>
