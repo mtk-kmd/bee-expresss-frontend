@@ -6,6 +6,19 @@ const nextConfig = {
       'file-api.mtktechlab.com'
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors 'self' https://chat.mtktechlab.com;",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

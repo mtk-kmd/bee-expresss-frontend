@@ -49,22 +49,30 @@ export default function CourierDashboard() {
             "status": parseInt(status),
         }
 
-        const stripeObject = {
-            "amount": ((packageData.stripe_data.line_items.data[0].amount_total * 0.3) / 100).toFixed(2) * 100,
-            "currency": "usd",
-            "userId": packageData.delivery.tracking.courier.stripe_acc_id,
+        let response = null;
+        let stripeResponse = null;
+
+        if (status === 0) {
+            const stripeObject = {
+                "amount": ((packageData.stripe_data.line_items.data[0].amount_total * 0.3) / 100).toFixed(2) * 100,
+                "currency": "usd",
+                "userId": packageData.delivery.tracking.courier.stripe_acc_id,
+            }
+
+            stripeResponse = await postApi('createStripePayout', authToken, stripeObject);
         }
 
-        console.log(stripeObject);
 
-        const response = await putApi('updateDeliveryStatus', authToken, object);
-        const stripeResponse = await postApi('createStripePayout', authToken, stripeObject);
+        response = await putApi('updateDeliveryStatus', authToken, object);
 
-        if (response.status === 200 && stripeResponse.status === 200) {
-            console.log(response);
+        if (response.status === 200) {
+            handleRocketChatDMMessage(
+                packageData.user?.user_name,
+                `Your package with tracking ID ${packageData.delivery.tracking.tracking_id} has been ${STATUS_MAP[status]}`
+            );
         }
 
-        getPackages();
+        await getPackages();
     };
 
     const handleFileSelect = async (event) => {
@@ -76,7 +84,7 @@ export default function CourierDashboard() {
             formData.append('photo', file);
             formData.append('userId', getUserDetails().id);
             formData.append('packageId', selectedPackage.package_id);
-            formData.append('trackingId', selectedPackage.delivery.tracking.tracking_id);
+            formData.append('trackingId', selectedPackage.delivery?.tracking?.tracking_id);
 
             setSelectedFile(formData);
 
@@ -97,6 +105,12 @@ export default function CourierDashboard() {
             const response = await postApi('upload', authToken, selectedFile, true);
 
             if (response.status === 200) {
+                response.data.fileUrl
+
+                await handleRocketChatDMMessage(
+                    selectedPackage.user?.user_name,
+                    `Your package with tracking ID got delivered! and here is the drop-off photo: ${response.data.fileUrl}`
+                );
                 alert('Photo uploaded successfully!');
                 setSelectedFile(null);
                 setPreviewUrl(null);
@@ -107,6 +121,21 @@ export default function CourierDashboard() {
             alert('Failed to upload photo');
         }
     };
+
+    const handleRocketChatDMMessage = async (userName, message) => {
+        try {
+            const response = await postApi('createDM', authToken, {
+                targetUsername: userName,
+                message: message,
+            });
+
+            if (response.status === 200) {
+                console.log(response);
+            }
+        } catch (error) {
+            console.error('Error creating DM:', error);
+        }
+    }
 
     useEffect(() => {
         getPackages();
@@ -215,7 +244,6 @@ export default function CourierDashboard() {
                                     </button>
                                 </div>
                             </div>
-                            <button onClick={handleLogout} className="btn btn-light btn-sm">Logout</button>
                         </div>
                     </div>
                     <div className="card-body">
@@ -242,16 +270,20 @@ export default function CourierDashboard() {
                                                 <td>
                                                     {p.stripe_data?.line_items?.data?.[0]?.description ? (
                                                         <span className="badge bg-info">
-                                                            {p.stripe_data.line_items.data[0].description}
+                                                            {p.stripe_data?.line_items?.data[0]?.description}
                                                         </span>
                                                     ) : (
                                                         <span className="badge bg-secondary">Unknown</span>
                                                     )}
                                                 </td>
                                                 <td>
-                                                    <span className="h4 text-success">
-                                                        ${((p.stripe_data.line_items.data[0].amount_total * 0.3) / 100).toFixed(2)}
-                                                    </span>
+                                                    {Object.keys(p.stripe_data?.line_items).length > 0 ? (
+                                                        <span className="h4 text-success">
+                                                            ${((p.stripe_data?.line_items?.data?.[0]?.amount_total * 0.3) / 100).toFixed(2)}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="badge bg-secondary">Unknown</span>
+                                                    )}
                                                 </td>
                                                 <td>
                                                     {!p.delivery ? (
@@ -386,6 +418,9 @@ export default function CourierDashboard() {
                 <Modal.Body>
                     {selectedPackage && (
                         <div className="delivery-status-container">
+                            <button className="btn btn-link" onClick={() => handleRocketChatDMMessage(selectedPackage.user?.user_name, `Package ID: ${selectedPackage.package_id}`)}>
+                                Send Message
+                            </button>
                             <div className="package-summary mb-4">
                                 <div className="d-flex justify-content-between align-items-center">
                                     <h6 className="mb-0">Package #{selectedPackage.package_id}</h6>
@@ -397,40 +432,42 @@ export default function CourierDashboard() {
 
                             <div className="status-actions mb-4">
                                 <div className="d-grid gap-3">
-                                    {selectedPackage.delivery_status?.delivery_status_log[0]?.status < 3 ? (
-                                        <button
-                                            className="btn btn-outline-primary d-flex justify-content-between align-items-center p-3"
-                                            onClick={() => handleDeliveryStatus(selectedPackage, 3)}
-                                        >
-                                            <div>
-                                                <h6 className="mb-1 text-start">Mark as Picked Up</h6>
-                                                <small className="">Confirm package pickup from sender</small>
-                                            </div>
-                                            <i className="bi bi-box-arrow-up fs-4"></i>
-                                        </button>
-                                    ) : selectedPackage.delivery_status?.delivery_status_log[0]?.status < 4 ? (
+                                    {/* {selectedPackage.delivery_status?.delivery_status_log[0]?.status > 5 && ( */}
+                                        {selectedPackage.delivery_status?.delivery_status_log[0]?.status < 3 ? (
                                             <button
                                                 className="btn btn-outline-primary d-flex justify-content-between align-items-center p-3"
-                                                onClick={() => handleDeliveryStatus(selectedPackage, 4)}
+                                                onClick={() => handleDeliveryStatus(selectedPackage, 3)}
                                             >
                                                 <div>
-                                                    <h6 className="mb-1">Mark as Delivering</h6>
-                                                    <small className="text-muted">Confirm successful delivery to recipient</small>
+                                                    <h6 className="mb-1 text-start">Mark as Picked Up</h6>
+                                                    <small className="">Confirm package pickup from sender</small>
                                                 </div>
-                                                <i className="bi bi-check2-circle fs-4"></i>
+                                                <i className="bi bi-box-arrow-up fs-4"></i>
                                             </button>
-                                        ) : (
-                                            <button
-                                                className="btn btn-outline-success d-flex justify-content-between align-items-center p-3"
-                                                onClick={() => handleDeliveryStatus(selectedPackage, 5)}
-                                            >
-                                                <div>
-                                                    <h6 className="mb-1">Mark as Delivered</h6>
-                                                    <small className="text-muted">Confirm successful delivery to recipient</small>
-                                                </div>
-                                                <i className="bi bi-check2-circle fs-4"></i>
-                                            </button>
-                                        )
+                                        ) : selectedPackage.delivery_status?.delivery_status_log[0]?.status < 4 ? (
+                                                <button
+                                                    className="btn btn-outline-primary d-flex justify-content-between align-items-center p-3"
+                                                    onClick={() => handleDeliveryStatus(selectedPackage, 4)}
+                                                >
+                                                    <div>
+                                                        <h6 className="mb-1">Mark as Delivering</h6>
+                                                        <small className="text-muted">Confirm successful delivery to recipient</small>
+                                                    </div>
+                                                    <i className="bi bi-check2-circle fs-4"></i>
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    className="btn btn-outline-success d-flex justify-content-between align-items-center p-3"
+                                                    onClick={() => handleDeliveryStatus(selectedPackage, 5)}
+                                                >
+                                                    <div>
+                                                        <h6 className="mb-1">Mark as Delivered</h6>
+                                                        <small className="text-muted">Confirm successful delivery to recipient</small>
+                                                    </div>
+                                                    <i className="bi bi-check2-circle fs-4"></i>
+                                                </button>
+                                            )
+
                                     }
                                 </div>
                             </div>
@@ -456,55 +493,69 @@ export default function CourierDashboard() {
                                     </div>
                                 </div>
                             </div>
+                            {selectedPackage.delivery?.tracking?.photo_url && (
+                                <img
+                                    src={selectedPackage.delivery?.tracking?.photo_url}
+                                    alt="Package Preview"
+                                    style={{
+                                        maxWidth: '200px',
+                                        height: 'auto',
+                                        borderRadius: '8px',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                    }}
+                                />
+                            )}
+                            {!selectedPackage.delivery?.tracking?.photo_url && selectedPackage.delivery_status?.delivery_status_log[0]?.status > 4 && (
+                                <div className="card mt-4">
+                                    <div className="card-header bg-primary text-white">
+                                        <h5 className="mb-0">Upload Drop-off Photo</h5>
+                                    </div>
+                                    <div className="card-body">
+                                        <div className="row">
+                                            <div className="col-md-6">
+                                                <div className="mb-3">
+                                                    <label className="form-label">Select Photo</label>
+                                                    <input
+                                                        type="file"
+                                                        className="form-control"
+                                                        accept=".png,.jpg,.jpeg,.heif"
+                                                        onChange={handleFileSelect}
+                                                    />
+                                                    <small className="text-muted">
+                                                        Allowed formats: PNG, JPG, JPEG, HEIF
+                                                    </small>
+                                                </div>
+                                                {selectedFile && (
+                                                    <button
+                                                        className="btn btn-primary"
+                                                        onClick={handleUpload}
+                                                    >
+                                                        Upload Photo
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="col-md-6">
+                                                {previewUrl && (
+                                                    <div>
+                                                        <h6>Preview:</h6>
+                                                        <img
+                                                            src={previewUrl}
+                                                            alt="Preview"
+                                                            style={{
+                                                                maxWidth: '100%',
+                                                                maxHeight: '200px',
+                                                                objectFit: 'contain'
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
-                    <div className="card mt-4">
-                        <div className="card-header bg-primary text-white">
-                            <h5 className="mb-0">Upload Profile Photo</h5>
-                        </div>
-                        <div className="card-body">
-                            <div className="row">
-                                <div className="col-md-6">
-                                    <div className="mb-3">
-                                        <label className="form-label">Select Photo</label>
-                                        <input
-                                            type="file"
-                                            className="form-control"
-                                            accept=".png,.jpg,.jpeg,.heif"
-                                            onChange={handleFileSelect}
-                                        />
-                                        <small className="text-muted">
-                                            Allowed formats: PNG, JPG, JPEG, HEIF
-                                        </small>
-                                    </div>
-                                    {selectedFile && (
-                                        <button
-                                            className="btn btn-primary"
-                                            onClick={handleUpload}
-                                        >
-                                            Upload Photo
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="col-md-6">
-                                    {previewUrl && (
-                                        <div>
-                                            <h6>Preview:</h6>
-                                            <img
-                                                src={previewUrl}
-                                                alt="Preview"
-                                                style={{
-                                                    maxWidth: '100%',
-                                                    maxHeight: '200px',
-                                                    objectFit: 'contain'
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseDeliveryModal}>

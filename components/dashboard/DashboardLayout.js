@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Navbar from "./Navbar";
+import NavbarComponent from "./Navbar";
 import Sidebar from "./Sidebar";
 import Head from "next/head";
 
@@ -22,7 +22,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
                 <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
 
                 <div className="main-content">
-                    <Navbar toggleSidebar={toggleSidebar} />
+                    <NavbarComponent toggleSidebar={toggleSidebar} />
                     <div className="page-content">{children}</div>
                 </div>
             </div>

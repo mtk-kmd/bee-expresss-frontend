@@ -6,7 +6,6 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { getPublicApi,postApi } from "@/utils/api_helper";
 import moment from "moment";
-import Image from "next/image";
 import { DELIVERY_STATUS, DELIVERY_STATUS_BADGES, LOCALES} from "@/utils/locales";
 
 export default function CustomerPackageDashboard() {
@@ -193,7 +192,6 @@ export default function CustomerPackageDashboard() {
                     <div className="card-header bg-primary text-white">
                         <div className="d-flex justify-content-between align-items-center">
                             <h5 className="mb-0">Package Information</h5>
-                            <button onClick={handleLogout} className="btn btn-light btn-sm">Logout</button>
                         </div>
                     </div>
                     <div className="card-body">
@@ -417,7 +415,7 @@ export default function CustomerPackageDashboard() {
                     ) : (
                         <div>
                             <stripe-pricing-table
-                                pricing-table-id="prctbl_1Qo7qNJDHoTbxcrY2Jw0dFxF"
+                                pricing-table-id="prctbl_1QujiBJDHoTbxcrYgnHY9SZ0"
                                 publishable-key="pk_test_51Odu8fJDHoTbxcrYBHy80TQ18t8SIYbz6rd1GbKfIoZRwPlU5Ye7d4BKitWEw3RnDFiiYzJj5bZnBCOPTDZYB5Sx0003yVorjX"
                                 client-reference-id={createdPackageId}
                                 success-url={`${window.location.origin}/dashboard`}
@@ -634,14 +632,8 @@ export default function CustomerPackageDashboard() {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Existing package details */}
-                            <div className="additional-details mt-4">
-                                {/* ... your existing package details ... */}
-                            </div>
-
                             <img
-                                src={selectedPackage.delivery.tracking.photo_url}
+                                src={selectedPackage.delivery?.tracking?.photo_url}
                                 alt="Package Preview"
                                 style={{
                                     maxWidth: '200px',
