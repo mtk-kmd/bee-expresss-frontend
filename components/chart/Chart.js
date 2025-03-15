@@ -144,7 +144,7 @@ export default function Chart() {
                             <div className="card-header">
                                 <h5 className="card-title">Delivery Trends (Last 7 Days)</h5>
                             </div>
-                            <div className="card-body">
+                            <div className="card-body" style={{ height: '150px' }}>
                                 <Line data={chartData} options={{
                                     responsive: true,
                                     scales: {
