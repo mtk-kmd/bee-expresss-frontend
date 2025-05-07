@@ -1,6 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
-import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
@@ -49,11 +48,11 @@ export default function NavbarComponent({ toggleSidebar }) {
     return (
         <>
             <Navbar bg="light" expand="lg">
-                <Container>
+                <div className="container-fluid px-4">
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="ms-auto">
-                        <NavDropdown
+                            <NavDropdown
                                 align="end"
                                 title={
                                     <div className="position-relative d-inline-block">
@@ -113,10 +112,8 @@ export default function NavbarComponent({ toggleSidebar }) {
                                 </div>
                             </NavDropdown>
                             <NavDropdown title={user?.username} id="basic-nav-dropdown">
-                                <NavDropdown.Item>
-                                    <Link href="/user">
-                                        Profile
-                                    </Link>
+                                <NavDropdown.Item as={Link} href="/user">
+                                    Profile
                                 </NavDropdown.Item>
                                 <NavDropdown.Item href="#action/3.3">
                                     <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
@@ -124,7 +121,7 @@ export default function NavbarComponent({ toggleSidebar }) {
                             </NavDropdown>
                         </Nav>
                     </Navbar.Collapse>
-                </Container>
+                </div>
             </Navbar>
         </>
     );
