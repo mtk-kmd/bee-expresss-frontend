@@ -35,7 +35,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_SSH_PASSWORD }}
           script: |
-            cd /home/ubuntu/dev/bee-express-admin-frontend
+            cd /home/ubuntu/dev/bee-expresss-frontend
             git fetch origin
             git checkout ${{ github.ref_name }}
             git stash
